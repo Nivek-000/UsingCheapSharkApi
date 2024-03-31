@@ -1,7 +1,7 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-import { searchKeyword, displaySearchHistory } from './app.js';
+import { searchByKeyword, displaySearchHistory } from './app.js';
 
 // Parse command-line arguments
 yargs(hideBin(process.argv))
@@ -21,7 +21,7 @@ yargs(hideBin(process.argv))
         },
         async (argv) => {
             const { keyword } = argv;
-            await searchKeyword(keyword);
+            await searchByKeyword(keyword);
         }
     )
     // History command

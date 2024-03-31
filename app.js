@@ -1,9 +1,10 @@
 import * as db from './db.js';
 import * as api from './api.js';
+import inquirer from 'inquirer';
 
-export const searchKeyword = async (keyword) => {  //search api by keyword
+export const searchByKeyword = async (keyword) => {  //search api by keyword
     try {
-        const searchResults = await searchByKeyword(keyword); 
+        const searchResults = await api.searchByKeyword(keyword); 
         
         await db.create('search_history', { search: keyword, resultCount: searchResults.length }); //save history to search_history
 
@@ -12,13 +13,25 @@ export const searchKeyword = async (keyword) => {  //search api by keyword
             console.log(`${index + 1}. ${result.title}`); //index increasing for each game/details returned
         });
 
-        const selectedItemIndex = parseInt(prompt('Enter the number of the item you want to view: ')) - 1;
-        const selectedItem = searchResults[selectedItemIndex]; //prompts user to select an item from the search results
+        const { selectedItemIndex } = await inquirer.prompt({
+            type: 'list',
+            name: 'selectedItemIndex',
+            message: 'Choose a game to view details:',
+            choices: searchResults.map((result, index) => `${index + 1}. ${result.title}`),
+        });
+
+        const selectedItem = searchResults[selectedItemIndex - 1]; //prompts user to select an item from the search results
+
+        const cacheOption = (await inquirer.prompt({
+            type: 'confirm',
+            name: 'useCache',
+            message: 'Use cache?',
+            default: false,
+        })).useCache;
 
        
-        const cacheOption = prompt('Use cache? (y/n): '); //asks if they want to use cache
         let detailedData;
-        if (cacheOption === 'y') {
+        if (cacheOption) {
             detailedData = await db.find('search_cache', selectedItem.id); //finds the selected item in the cache
             if (!detailedData) {
                 detailedData = await getDetailsById(selectedItem.id);
