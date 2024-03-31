@@ -16,7 +16,8 @@ export const searchByKeyword = async(keyword) => {
 
 export const getDetailsById = async(id) => {
     // Your get details API endpoint
-    const url = `https://www.cheapshark.com/api/1.0/deals?id=${id}`;
+    const url = `https://www.cheapshark.com/api/1.0/games?id=${id}`;
+
     try {
         const response = await axios.get(url);
         return response.data;
