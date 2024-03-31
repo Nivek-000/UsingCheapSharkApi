@@ -17,10 +17,8 @@ export const searchByKeyword = async (keyword) => {  //search api by keyword
             choices: searchResults.map((result, index) => `${index + 1}. ${result.title}`),
         });
 
-
         const selectedIndex = parseInt(selectedItemIndex.split('.')[0]) - 1;
         const selectedItem = searchResults[selectedIndex];
-        console.log('selectedItem:', selectedItem);
         
         const gameId = selectedItem.gameID;
         
@@ -36,22 +34,21 @@ export const searchByKeyword = async (keyword) => {  //search api by keyword
             detailedData = await db.find('search_cache', gameId); //finds the selected item in the cache
             if (!detailedData) {
                 detailedData = await api.getDetailsById(gameId);
-                console.log('Data fetched:', detailedData); // Log the fetched data
-                await db.create('search_cache', { id: gameId, data: detailedData }); //if correct data isn't found, API gives selected item by ID
+                //console.log('Data fetched:', detailedData); // Log the fetched data
+                await db.create('search_cache', detailedData); //if correct data isn't found, API gives selected item by ID
             }
         } else {
             detailedData = await api.getDetailsById(gameId); //get details
-            console.log('Data fetched:', detailedData); // Log the fetched data
-            await db.create('search_cache', { id: gameId, data: detailedData }); //saves as entry in search_cache
+            //console.log('Data fetched:', detailedData); // Log the fetched data
+            await db.create('search_cache', detailedData); //saves as entry in search_cache
         }
 
         //display data
         console.log('Detailed data:');
-        console.log(`Title: ${detailedData.title}`);
-        console.log(`salePrice: ${detailedData.salePrice}`);
-        console.log(`normalPrice: ${detailedData.normalPrice}`);
-        console.log(`savings: ${detailedData.savings}`);
-       
+        console.log(`Title: ${detailedData?.title}`);
+        console.log(`Current Price: ${detailedData.currentPrice}`);
+        console.log(`Normal Price: ${detailedData.normalPrice}`);
+        console.log(`Savings: ${detailedData.savings}`);
         
     } catch (error) {
         console.error('Error: No data found for the selected item.');
