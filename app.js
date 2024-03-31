@@ -9,9 +9,6 @@ export const searchByKeyword = async (keyword) => {  //search api by keyword
         await db.create('search_history', { search: keyword, resultCount: searchResults.length }); //save history to search_history
 
         console.log('Search results:'); //used to display search results
-        searchResults.forEach((result, index) => {
-            console.log(`${index + 1}. ${result.title}`); //index increasing for each game/details returned
-        });
 
         const { selectedItemIndex } = await inquirer.prompt({
             type: 'list',
@@ -20,25 +17,25 @@ export const searchByKeyword = async (keyword) => {  //search api by keyword
             choices: searchResults.map((result, index) => `${index + 1}. ${result.title}`),
         });
 
-        const selectedItem = searchResults[selectedItemIndex - 1]; //prompts user to select an item from the search results
+        const selectedItem = searchResults[selectedItemIndex.split('.')[0] - 1]; //prompts user to select an item from the search results
 
-        const cacheOption = (await inquirer.prompt({
+        const { cacheOption } = await inquirer.prompt({
             type: 'confirm',
             name: 'useCache',
             message: 'Use cache?',
             default: false,
-        })).useCache;
+        });
 
        
         let detailedData;
         if (cacheOption) {
             detailedData = await db.find('search_cache', selectedItem.id); //finds the selected item in the cache
             if (!detailedData) {
-                detailedData = await getDetailsById(selectedItem.id);
+                detailedData = await api.getDetailsById(selectedItem.id);
                 await db.create('search_cache', { id: selectedItem.id, data: detailedData }); //if correct data isnt found, API gives selected item by ID
             }
         } else {
-            detailedData = await getDetailsById(selectedItem.id); //get details
+            detailedData = await api.getDetailsById(selectedItem.id); //get details
             await db.create('search_cache', { id: selectedItem.id, data: detailedData }); //saves as entry in search_cache
         }
 
