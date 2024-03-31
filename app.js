@@ -20,9 +20,7 @@ export const searchByKeyword = async (keyword) => {  //search api by keyword
         const selectedIndex = parseInt(selectedItemIndex.split('.')[0]) - 1;
         const selectedItem = searchResults[selectedIndex];
         
-        const gameId = selectedItem.gameID;
-        
-        const { cacheOption } = await inquirer.prompt({
+        const { useCache } = await inquirer.prompt({
             type: 'confirm',
             name: 'useCache',
             message: 'Use cache?',
@@ -30,25 +28,23 @@ export const searchByKeyword = async (keyword) => {  //search api by keyword
         });
 
         let detailedData;
-        if (cacheOption) {
-            detailedData = await db.find('search_cache', gameId); //finds the selected item in the cache
+        if (useCache) {
+            detailedData = await db.find('search_cache', selectedItem.gameID); //finds the selected item in the cache
             if (!detailedData) {
-                detailedData = await api.getDetailsById(gameId);
-                //console.log('Data fetched:', detailedData); // Log the fetched data
-                await db.create('search_cache', detailedData); //if correct data isn't found, API gives selected item by ID
+                detailedData = await api.getDetailsById(selectedItem.gameID);
+                await db.create('search_cache', { id: selectedItem.gameID, data: detailedData }); //if correct data isn't found, API gives selected item by ID
             }
         } else {
-            detailedData = await api.getDetailsById(gameId); //get details
-            //console.log('Data fetched:', detailedData); // Log the fetched data
-            await db.create('search_cache', detailedData); //saves as entry in search_cache
+            detailedData = await api.getDetailsById(selectedItem.gameID); //get details
+            await db.create('search_cache', { id: selectedItem.gameID, data: detailedData }); //saves as entry in search_cache
         }
 
         //display data
         console.log('Detailed data:');
-        console.log(`Title: ${detailedData?.title}`);
-        console.log(`Current Price: ${detailedData.currentPrice}`);
-        console.log(`Normal Price: ${detailedData.normalPrice}`);
-        console.log(`Savings: ${detailedData.savings}`);
+        console.log(`Title: ${detailedData?.info.title}`);
+        console.log(`Current Price: ${detailedData?.cheapestPriceEver.price}`);
+        console.log(`Normal Price: ${detailedData?.deals[0]?.retailPrice}`);
+        console.log(`Savings: ${detailedData?.deals[0]?.savings}`);
         
     } catch (error) {
         console.error('Error: No data found for the selected item.');
